@@ -9,7 +9,7 @@ BASE_URL = "https://ogmmateryal.eba.gov.tr"
 HEADERS = {"User-Agent": "Mozilla/5.0"}
 FILE_NAME = "interactive_books.csv"
 FILE_HEADERS = [
-    "sinifId", "sinif", "dersId", "dersNo", "dersIsmi", "uniteId", "uniteNo", "uniteIsmi", "kazanimId", "kazanimNo", "kazanimIsmi",
+    "sinifId", "sinifIsmi", "dersId", "dersNo", "dersIsmi", "uniteId", "uniteNo", "uniteIsmi", "kazanimId", "kazanimNo", "kazanimKod", "kazanimIsmi",
     "kitapId", "kitapIsmi", "sayfaNo", "interaktifKitapLink", "pdfIndirmeLink", "zipIndirmeLink", "kitapThumbnailLink"
 ]
 
@@ -26,6 +26,10 @@ def clean_text(text):
     text = re.sub(r"[\n\r\t]", " ", text)
     text = re.sub(r"\s{2,}", " ", text)
     return text.strip()
+
+def get_kazanim_code(kazanim_ismi):
+    match = re.match(r'^[\w.İŞĞÜÇÖıüşğöç]+(?:[\d.İŞĞÜÇÖıüşğöç]*)?\s*-?', kazanim_ismi.strip())
+    return match.group(0).strip(" -") if match else ""
 
 
 def exponential_backoff_request(url, method="GET", data=None, max_retries=5):
@@ -48,9 +52,12 @@ def get_last_progress():
     with open(FILE_NAME, "r", encoding="utf-8-sig") as f:
         reader = csv.reader(f)
         last_row = None
+        c = 0
         for row in reader:
             last_row = row  # Read only the last row
-    if not last_row:
+            c += 1
+       
+    if c < 2 or not last_row:
         return None
     return {
         "sinifId": last_row[0], "dersId": last_row[2], "dersNo": int(last_row[3]), "uniteId": last_row[5],
@@ -66,7 +73,7 @@ def remove_partial_entries(progress):
         writer = csv.writer(temp_f)
         for row in reader:
             if row[0] == progress["sinifId"] and int(row[9]) >= progress["kazanimNo"]:
-                break  # Stop writing when reaching partial entries
+                break 
             writer.writerow(row)
     os.replace(temp_file, FILE_NAME)
 
@@ -146,12 +153,13 @@ def process_scraping():
                 gains = exponential_backoff_request(f"{BASE_URL}/api/kazanim-listele/{uniteId}", method="POST") or []
                 for gain in gains:
                     kazanimId, kazanimNo, kazanim = int(gain.get("id", 0)), int(gain.get("sira", 0)), gain.get("baslik", "")
+                    kazanimKod = get_kazanim_code(kazanim)
                     if last_progress and sinifId == last_progress["sinifId"] and dersNo == last_progress["dersNo"] and uniteNo == last_progress["uniteNo"] and kazanimNo <= last_progress["kazanimNo"]:
                         continue
                     books = get_books(sinifId, dersId, uniteId, kazanimId, urlKod)
                     rows = []
                     for book in books:
-                        row = [clean_text(str(item)) for item in [sinifId, sinif, dersId, dersNo, ders, uniteId, uniteNo, unite, kazanimId, kazanimNo, kazanim,
+                        row = [clean_text(str(item)) for item in [sinifId, sinif, dersId, dersNo, ders, uniteId, uniteNo, unite, kazanimId, kazanimNo, kazanimKod, kazanim,
                             book["kitapId"], book["kitapIsmi"], book["sayfaNo"], book["interaktifKitapLink"],
                             book["pdfIndirmeLink"], book["zipIndirmeLink"], book["thumbnailLink"]]
                             ]

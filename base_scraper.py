@@ -1,0 +1,110 @@
+import requests
+import re
+import time
+import csv
+import os
+import string
+from bs4 import BeautifulSoup
+from typing import List, Dict, Any, Optional, Tuple
+
+class BaseScraper:
+    BASE_URL = "https://ogmmateryal.eba.gov.tr"
+    HEADERS = {"User-Agent": "Mozilla/5.0"}
+
+    def __init__(self):
+        self.compiled_patterns = {
+            'apostrophe': re.compile(r"[\u2019\u2018\u2032\u0060\u00B4\u02BC\u02BB\u02BD\u0022\u201C\u201D\u201E\u2033\u2036\u275D]"),
+            'whitespace': re.compile(r"[\n\r\t]"),
+            'multiple_spaces': re.compile(r"\s{2,}"),
+            'kazanim_code': re.compile(r'^[\w.İŞĞÜÇÖıüşğöç]+(?:[\d.İŞĞÜÇÖıüşğöç]*)?\s*-?')
+        }
+        self.FILE_NAME = self.construct_clean_filename()
+    
+    def construct_clean_filename(self)->str:
+        path = self.PATH
+        segments = path.split("/")
+        segments = map(lambda x: string.capwords(x.replace("-", "_")), segments)
+
+        filename = "_".join(segments)
+
+        return f"{filename}_{time.strftime('%Y%m%d_%H%M%S')}.csv"
+
+    def clean_text(self, text: str) -> str:
+        if not text:
+            return ""
+        text = self.compiled_patterns['apostrophe'].sub("'", text)
+        text = self.compiled_patterns['whitespace'].sub(" ", text)
+        text = self.compiled_patterns['multiple_spaces'].sub(" ", text)
+        return text.strip()
+
+    def get_kazanim_code(self, kazanim_ismi: str) -> str:
+        match = self.compiled_patterns['kazanim_code'].match(kazanim_ismi.strip())
+        return match.group(0).strip(" -") if match else ""
+
+    def exponential_backoff_request(self, url: str, method: str = "GET", 
+                                  data: Optional[Dict] = None, max_retries: int = 5) -> Optional[Any]:
+        wait_time = 4
+        for _ in range(max_retries):
+            try:
+                response = requests.request(method, url, headers=self.HEADERS, json=data)
+                if response.status_code == 200:
+                    return response.json() if method == "POST" else response.text
+            except requests.exceptions.RequestException:
+                print(f"Request failed. Retrying in {wait_time} seconds...")
+                time.sleep(wait_time)
+                wait_time *= 2
+        return None
+
+    def fetch_grades(self, html: str=None) -> List[Tuple[str, str]]:
+        if not html:
+            html = self.exponential_backoff_request(f"{self.BASE_URL}/etkilesimli-kitaplar")
+        if not html:
+            return []
+        soup = BeautifulSoup(html, "html.parser")
+        return [(opt["value"], opt.text.strip()) 
+                for opt in soup.select("select#dlSinif option[value]") 
+                if opt["value"] != "0"]
+
+    def write_to_csv(self, rows: List[List[str]]):
+        file_exists = os.path.isfile(self.FILE_NAME)
+        
+        with open(self.FILE_NAME, 'a', encoding="utf-8-sig", newline="") as f:
+            writer = csv.writer(f)
+            if not file_exists and self.HEADERS:
+                writer.writerow(self.HEADERS)
+            writer.writerows(rows)
+    
+    def get_last_line(self)-> Optional[dict]:
+        with open(self.FILE_NAME, "rb") as f:
+            try:
+                f.seek(-2, os.SEEK_END)
+                while f.read(1) != b'\n':
+                    f.seek(-2, os.SEEK_CUR)
+
+            except OSError:
+                return None
+
+            last_line = f.readline().decode().strip()
+            header = ','.join(self.HEADERS)
+
+            if last_line == header:
+                return None
+            
+            last_line_dict = dict(zip(self.HEADERS, last_line.split(",")))
+            return last_line_dict
+
+    def get_subject_list(self, sinif_id: str) -> List[Dict]:
+        return self.exponential_backoff_request(f"{self.BASE_URL}/api/ders-listele/{sinif_id}", "POST") or []
+
+    def get_unit_list(self, ders_id: int) -> List[Dict]:
+        return self.exponential_backoff_request(f"{self.BASE_URL}/api/unite-listele/{ders_id}", "POST") or []
+
+    def get_kazanim_list(self, unite_id: int) -> List[Dict]:
+        gains = self.exponential_backoff_request(f"{self.BASE_URL}/api/kazanim-listele/{unite_id}", "POST") or []
+        for gain in gains:
+            gain["kod"] = self.get_kazanim_code(gain["baslik"])
+
+        return gains
+    
+    def scrape(self):
+        raise NotImplementedError("Subclasses must implement scrape method") 
