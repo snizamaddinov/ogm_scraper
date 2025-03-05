@@ -18,13 +18,25 @@ class BaseScraper:
             'multiple_spaces': re.compile(r"\s{2,}"),
             'kazanim_code': re.compile(r'^[\w.İŞĞÜÇÖıüşğöç]+(?:[\d.İŞĞÜÇÖıüşğöç]*)?\s*-?')
         }
-        self.FILE_NAME = self.construct_clean_filename()
-    
-    def construct_clean_filename(self)->str:
-        path = self.PATH
-        segments = path.split("/")
-        segments = map(lambda x: string.capwords(x.replace("-", "_")), segments)
 
+        self.FILE_NAME = self.construct_clean_filename_from_title()
+        print(f"File name: {self.FILE_NAME}")
+        # exit()
+    
+    def construct_clean_filename_from_title(self)->str:
+        url = f"{self.BASE_URL}{self.PATH if self.PATH.startswith('/') else f'/{self.PATH}'}"
+        print("URL: ", url)
+        self.base_html = self.exponential_backoff_request(url)
+        soup = BeautifulSoup(self.base_html, "lxml")
+        title = soup.title.string
+        main = title.split("|")[0].strip()
+    
+        # turkish letters to english
+        turkish = "çğıöşü"
+        english = "cgiosu"
+        tr_to_eng = str.maketrans(turkish, english)
+        main = main.lower().translate(tr_to_eng).replace("(", "").replace(")", "")
+        segments = [string.capwords(segment) for segment in main.split(" ")]
         filename = "_".join(segments)
 
         return f"{filename}_{time.strftime('%Y%m%d_%H%M%S')}.csv"
@@ -57,7 +69,8 @@ class BaseScraper:
 
     def fetch_grades(self, html: str=None) -> List[Tuple[str, str]]:
         if not html:
-            html = self.exponential_backoff_request(f"{self.BASE_URL}/etkilesimli-kitaplar")
+            url = f"{self.BASE_URL}{self.PATH if self.PATH.startswith('/') else f'/{self.PATH}'}"
+            html = self.exponential_backoff_request(url)
         if not html:
             return []
         soup = BeautifulSoup(html, "html.parser")
