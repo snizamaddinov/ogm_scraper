@@ -18,7 +18,8 @@ class BaseScraper:
             'apostrophe': re.compile(r"[\u2019\u2018\u2032\u0060\u00B4\u02BC\u02BB\u02BD\u0022\u201C\u201D\u201E\u2033\u2036\u275D]"),
             'whitespace': re.compile(r"[\n\r\t]"),
             'multiple_spaces': re.compile(r"\s{2,}"),
-            'kazanim_code': re.compile(r'^[\w.İŞĞÜÇÖıüşğöç]+(?:[\d.İŞĞÜÇÖıüşğöç]*)?\s*-?')
+            'kazanim_code': re.compile(r'^[\w.İŞĞÜÇÖıüşğöç]+(?:[\d.İŞĞÜÇÖıüşğöç]*)?\s*-?'),
+            'script_tag': re.compile(r"<script[^>]*>(.*?)</script>", re.DOTALL)
         }
 
         self.FILE_NAME = self.construct_clean_filename_from_title()
@@ -91,9 +92,15 @@ class BaseScraper:
         if not html:
             url = f"{self.BASE_URL}{self.PATH if self.PATH.startswith('/') else f'/{self.PATH}'}"
             html = self.exponential_backoff_request(url)
+
         if not html:
             return []
-        soup = BeautifulSoup(html, "lxml")
+        
+        if isinstance(html, BeautifulSoup):
+            soup = html
+        else:
+            soup = BeautifulSoup(html, "lxml")
+    
         return [(opt["value"], opt.text.strip()) 
                 for opt in soup.select("select#dlSinif option[value]") 
                 if opt["value"] != "0"]
@@ -141,3 +148,34 @@ class BaseScraper:
     
     def scrape(self):
         raise NotImplementedError("Subclasses must implement scrape method") 
+    
+    def parse_id_array_from_script(self, script_text, function_name):
+        pattern = rf"{function_name}\s*\(\)\s*{{.*?var dids\s*=\s*\[([^\]]*)\];.*?}}"
+
+        match = re.search(pattern, script_text, re.DOTALL)
+        if not match:
+            return set()
+        raw_ids = match.group(1)
+
+        ids = set()
+        for x in raw_ids.split(","):
+            x = x.strip()
+            if x.isdigit():
+                ids.add(int(x))
+        return ids
+
+    def parse_ders_unite_kazanim_ids(self, html):
+        scripts = re.findall(self.compiled_patterns['script_tag'], html)
+        target_script = scripts[-1]
+        ders_ids, unite_ids, kazanim_ids = set(), set(), set()
+        
+        if "function dersSil" in target_script:
+            ders_ids = self.parse_id_array_from_script(target_script, "dersSil")
+
+        if "function uniteSil" in target_script:
+            unite_ids = self.parse_id_array_from_script(target_script, "uniteSil")
+
+        if "function kazanimSil" in target_script:
+            kazanim_ids = self.parse_id_array_from_script(target_script, "kazanimSil")
+
+        return ders_ids, unite_ids, kazanim_ids

@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup
 import requests
 
-def scrape_flibooks(soup: BeautifulSoup, check_redirect_links=True)->list[dict[str, str]]:
+def scrape_flibooks(soup: BeautifulSoup, check_redirect_links=False, domain=None)->list[dict[str, str]]:
     books = soup.select('.books-detail-action-content')
     scraped_books = []
 
@@ -15,6 +15,8 @@ def scrape_flibooks(soup: BeautifulSoup, check_redirect_links=True)->list[dict[s
             href = action_link['href']
 
             if check_redirect_links:
+                if not href.startswith('http'):
+                    href = f"{domain}{href}"
                 result_without_redirect = requests.get(href, allow_redirects=False)
                 if result_without_redirect.is_redirect:
                     href = result_without_redirect.headers["Location"]

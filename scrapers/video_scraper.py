@@ -13,7 +13,6 @@ class VideoScraper(BaseScraper):
     def __init__(self):
         super().__init__()
         self.compiled_patterns['video_id'] = re.compile(r"videoGoster\('([^']+)")
-        self.compiled_patterns['script_tag'] = re.compile(r"<script[^>]*>(.*?)</script>", re.DOTALL)
 
     def get_initial_data(self):
         return self.exponential_backoff_request(f"{self.BASE_URL}{self.PATH}", "GET")
