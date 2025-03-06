@@ -2,6 +2,7 @@ from scrapers.base_scraper import BaseScraper
 from typing import Dict
 from bs4 import BeautifulSoup
 import queue
+from scrapers.helpers import scrape_flibooks
 
 class GuzelSanatlarLisesiKitapScraper(BaseScraper):
     PATH = 'etkilesimli-kitap/guzel-sanatlar-lisesi'
@@ -37,7 +38,7 @@ class GuzelSanatlarLisesiKitapScraper(BaseScraper):
         if further_contents:
             self.collect_links(page, is_ders=True, defaults=link_info)
         else:
-            self.scrape_book_details(page, link_info)
+            self.process_books(page, link_info)
 
     def collect_links(self, page: BeautifulSoup, is_ders=True, defaults=None):
         contents = page.select('.books-detail-box .books-detail-content')
@@ -59,33 +60,15 @@ class GuzelSanatlarLisesiKitapScraper(BaseScraper):
             
             self.links.put(new_link_info)
 
-    def scrape_book_details(self, page: BeautifulSoup, link_info: Dict[str, str]):
-        books = page.select('.books-detail-action-content')
+    def process_books(self, page: BeautifulSoup, link_info: Dict[str, str]):
+        scraped_books = scrape_flibooks(page, check_redirect_links=False)
         rows = []
-
-        for book in books:
-            flipbook_link = ''  
-            pdf_link = ''
-            zip_link = ''
-            thumbnail_link = book.select_one('img')['src']
-
-            for action_link in book.select('.books-detail-action-buttons a'):
-                href = action_link['href']
-
-                if href.endswith('.html'):
-                    flipbook_link = href
-                elif href.endswith('.pdf'):
-                    pdf_link = href
-                elif href.endswith('.zip'):
-                    zip_link = href
-
-            row = [self.clean_text(item)
+        
+        for book in scraped_books:
+            rows.append([self.clean_text(item)
                    for item in 
                    [link_info['sinifPath'], link_info['sinifIsmi'],
-                    link_info['dersPath'], link_info['dersIsmi'],
-                    flipbook_link, pdf_link, zip_link, thumbnail_link]
-            ]
-
-            rows.append(row)
+                    link_info['dersPath'], link_info['dersIsmi']]]
+                    + list(book.values()))
 
         self.write_to_csv(rows)
