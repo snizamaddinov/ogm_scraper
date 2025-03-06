@@ -4,12 +4,14 @@ import time
 import csv
 import os
 import string
+import pathlib
 from bs4 import BeautifulSoup
 from typing import List, Dict, Any, Optional, Tuple
 
 class BaseScraper:
     BASE_URL = "https://ogmmateryal.eba.gov.tr"
     HEADERS = {"User-Agent": "Mozilla/5.0"}
+    DATA_FOLDER = 'data' #TODO take from env
 
     def __init__(self):
         self.compiled_patterns = {
@@ -20,8 +22,12 @@ class BaseScraper:
         }
 
         self.FILE_NAME = self.construct_clean_filename_from_title()
+        
+        self.FILE_PATH = self.construct_file_path()
+
         print(f"File name: {self.FILE_NAME}")
-        # exit()
+        print(f"File path: {self.FILE_PATH}")
+        exit()
     
     def construct_clean_filename_from_title(self)->str:
         url = f"{self.BASE_URL}{self.PATH if self.PATH.startswith('/') else f'/{self.PATH}'}"
@@ -41,6 +47,14 @@ class BaseScraper:
 
         return f"{filename}_{time.strftime('%Y%m%d_%H%M%S')}.csv"
 
+    def construct_file_path(self):
+        current_path = pathlib.Path(__file__).parent.absolute()
+        parent_path = current_path.parent
+        data_path = parent_path / self.DATA_FOLDER
+        data_path.mkdir(exist_ok=True)
+        file_path = data_path / self.FILE_NAME
+        return file_path
+    
     def clean_text(self, text: str) -> str:
         if not text:
             return ""
@@ -79,9 +93,9 @@ class BaseScraper:
                 if opt["value"] != "0"]
 
     def write_to_csv(self, rows: List[List[str]]):
-        file_exists = os.path.isfile(self.FILE_NAME)
+        file_exists = os.path.isfile(self.FILE_PATH)
         
-        with open(self.FILE_NAME, 'a', encoding="utf-8-sig", newline="") as f:
+        with open(self.FILE_PATH, 'a', encoding="utf-8-sig", newline="") as f:
             writer = csv.writer(f)
             if not file_exists and self.HEADERS:
                 writer.writerow(self.HEADERS)

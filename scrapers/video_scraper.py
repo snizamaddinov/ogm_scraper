@@ -1,4 +1,4 @@
-from base_scraper import BaseScraper
+from scrapers.base_scraper import BaseScraper
 import re
 from bs4 import BeautifulSoup
 
@@ -8,7 +8,7 @@ class VideoScraper(BaseScraper):
         "sinifId", "sinifIsmi", "dersId", "dersNo", "dersKod", "dersIsmi", "uniteId", "uniteNo", "uniteIsmi",
         "kazanimId", "kazanimNo", "kazanimKod", "kazanimIsmi", 'videoId', 'videoBaslik', 'videoLink'
     ]
-    VIDEO_DOWNLOAD_LINK = "https://ogmmateryal.eba.gov.tr/ebatv-ogm/upload/uzev-480/{video_id_for_link}"
+    VIDEO_DOWNLOAD_LINK = "https://ogmmateryal.eba.gov.tr/ebatv-ogm/upload/uzev-480/{video_id}_1.mp4"
 
     def __init__(self):
         super().__init__()
@@ -86,11 +86,11 @@ class VideoScraper(BaseScraper):
                             video_id = self.compiled_patterns['video_id'].search(onclick_attr)
                             if not video_id:
                                 continue
+
                             video_title = self.clean_text(video.get_text())
                             video_id = self.clean_text(video_id.group(1))
-                            # According to the JS, they replace ".mp4" with "_1.mp4" for the final URL
-                            video_id_for_link = video_id.replace(".mp4", "_1.mp4")
-                            video_link = self.VIDEO_DOWNLOAD_LINK.format(video_id_for_link=video_id_for_link)
+                            video_link = self.VIDEO_DOWNLOAD_LINK.format(video_id=video_id)
+
                             row = [ self.clean_text(item) if isinstance(item, str) else item
                                 for item in
                                 [grade_id, grade_name, subject["id"], subject["sira"], subject['kod'], subject["baslik"],

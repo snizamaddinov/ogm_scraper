@@ -1,4 +1,4 @@
-from base_scraper import BaseScraper
+from scrapers.base_scraper import BaseScraper
 from typing import List, Dict
 from bs4 import BeautifulSoup
 
