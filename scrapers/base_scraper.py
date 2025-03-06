@@ -81,13 +81,19 @@ class BaseScraper:
                 wait_time *= 2
         return None
 
+    def get_soup_from_url(self, url: str) -> Optional[BeautifulSoup]:
+        html = self.exponential_backoff_request(url)
+        if not html:
+            return None
+        return BeautifulSoup(html, "lxml")
+
     def fetch_grades(self, html: str=None) -> List[Tuple[str, str]]:
         if not html:
             url = f"{self.BASE_URL}{self.PATH if self.PATH.startswith('/') else f'/{self.PATH}'}"
             html = self.exponential_backoff_request(url)
         if not html:
             return []
-        soup = BeautifulSoup(html, "html.parser")
+        soup = BeautifulSoup(html, "lxml")
         return [(opt["value"], opt.text.strip()) 
                 for opt in soup.select("select#dlSinif option[value]") 
                 if opt["value"] != "0"]
