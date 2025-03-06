@@ -27,7 +27,7 @@ class BaseScraper:
 
         print(f"File name: {self.FILE_NAME}")
         print(f"File path: {self.FILE_PATH}")
-        exit()
+        # exit()
     
     def construct_clean_filename_from_title(self)->str:
         url = f"{self.BASE_URL}{self.PATH if self.PATH.startswith('/') else f'/{self.PATH}'}"
@@ -103,8 +103,8 @@ class BaseScraper:
         
         with open(self.FILE_PATH, 'a', encoding="utf-8-sig", newline="") as f:
             writer = csv.writer(f)
-            if not file_exists and self.HEADERS:
-                writer.writerow(self.HEADERS)
+            if not file_exists and self.FILE_HEADERS:
+                writer.writerow(self.FILE_HEADERS)
             writer.writerows(rows)
     
     def get_last_line(self)-> Optional[dict]:
@@ -118,12 +118,12 @@ class BaseScraper:
                 return None
 
             last_line = f.readline().decode().strip()
-            header = ','.join(self.HEADERS)
+            header = ','.join(self.FILE_HEADERS)
 
             if last_line == header:
                 return None
             
-            last_line_dict = dict(zip(self.HEADERS, last_line.split(",")))
+            last_line_dict = dict(zip(self.FILE_HEADERS, last_line.split(",")))
             return last_line_dict
 
     def get_subject_list(self, sinif_id: str) -> List[Dict]:
