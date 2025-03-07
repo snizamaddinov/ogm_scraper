@@ -32,6 +32,7 @@ class BaseScraper:
     
     def construct_clean_filename_from_title(self)->str:
         if hasattr(self, "FILE_NAME_PREFIX"):
+            print("FILE_NAME_PREFIX: ", self.FILE_NAME_PREFIX)
             return f"{self.FILE_NAME_PREFIX}_{time.strftime('%Y%m%d_%H%M%S')}.csv"
 
         url = f"{self.BASE_URL}{self.PATH if self.PATH.startswith('/') else f'/{self.PATH}'}"
@@ -95,6 +96,7 @@ class BaseScraper:
     def fetch_grades(self, html: str=None) -> List[Tuple[str, str]]:
         if not html:
             url = f"{self.BASE_URL}{self.PATH if self.PATH.startswith('/') else f'/{self.PATH}'}"
+            print("URL: ", url)
             html = self.exponential_backoff_request(url)
 
         if not html:
