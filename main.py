@@ -23,7 +23,7 @@ def main():
     # spor = SporLisesiKitapScraper()
     # spor.scrape()
 
-    kazanim = KazanimBazliKavramOgrenimiEtkilesimliKitapScraper()
+    kazanim = GuzelSanatlarLisesiKitapScraper()
     kazanim.scrape()
 if __name__ == "__main__":
     main() 

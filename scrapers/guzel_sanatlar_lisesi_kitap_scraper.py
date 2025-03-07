@@ -20,7 +20,7 @@ class GuzelSanatlarLisesiKitapScraper(BaseScraper):
         if not main_page:
             return
 
-        self.collect_links(main_page, is_ders=False)
+        self.collect_links(main_page, is_ders=True)
 
         while not self.links.empty():
             link_info = self.links.get()
@@ -36,7 +36,7 @@ class GuzelSanatlarLisesiKitapScraper(BaseScraper):
         
         further_contents = page.select('.books-detail-box .books-detail-content')
         if further_contents:
-            self.collect_links(page, is_ders=True, defaults=link_info)
+            self.collect_links(page, is_ders=False, defaults=link_info)
         else:
             self.process_books(page, link_info)
 
@@ -51,12 +51,15 @@ class GuzelSanatlarLisesiKitapScraper(BaseScraper):
             name = a_tag.select_one('.books-detail-head h4').text.strip()
     
             if is_ders:
-                new_link_info = defaults.copy()
-                new_link_info.update({'dersPath': path, 'dersIsmi': name,
-                                      'link_2_scrape': f"{self.BASE_URL}{a_tag['href']}"})
+                new_link_info = {
+                                'sinifPath': '', 'sinifIsmi': '',
+                                'dersPath': path, 'dersIsmi': name,
+                                'link_2_scrape': f"{self.BASE_URL}{a_tag['href']}"}
             else:
+                # scraping sinif.
                 new_link_info = {'link_2_scrape': f"{self.BASE_URL}{a_tag['href']}",
-                                'sinifPath':path, 'sinifIsmi': name, 'dersPath': '', 'dersIsmi': ''}
+                                'sinifPath':path, 'sinifIsmi': name,
+                                 'dersPath': defaults['dersPath'], 'dersIsmi': defaults['dersIsmi']}
             
             self.links.put(new_link_info)
 
