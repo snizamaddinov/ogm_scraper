@@ -48,6 +48,9 @@ class GuzelSanatlarLisesiKitapScraper(BaseScraper):
         for content in contents:
             a_tag = content.select_one('a')
             path = a_tag['href'].split('/')[-1]
+            if '?' in path:
+                path = path.split('?')[0]
+
             name = a_tag.select_one('.books-detail-head h4').text.strip()
     
             if is_ders:
