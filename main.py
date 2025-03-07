@@ -4,6 +4,7 @@ from scrapers.guzel_sanatlar_lisesi_kitap_scraper import GuzelSanatlarLisesiKita
 from scrapers.spor_lisesi_kitap_scraper import SporLisesiKitapScraper
 from scrapers.kazanim_kavrama_etkinlik_scraper import KazanimKavramaEtkinlikScraper
 from scrapers.kazanim_bazli_kazanim_kavrama_etkinlik_scraper import KazanimBazliKazanimKavramaEtkinlikScraper
+from scrapers.calisma_defteri_scraper import CalismaDefterScraper
 
 def main():
     # Scrape interactive books
@@ -20,7 +21,7 @@ def main():
     # spor = SporLisesiKitapScraper()
     # spor.scrape()
 
-    kazanim = KazanimBazliKazanimKavramaEtkinlikScraper()
+    kazanim = CalismaDefterScraper()
     kazanim.scrape()
 if __name__ == "__main__":
     main() 
