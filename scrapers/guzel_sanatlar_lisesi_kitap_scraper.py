@@ -14,13 +14,15 @@ class GuzelSanatlarLisesiKitapScraper(BaseScraper):
     def __init__(self):
         super().__init__()
         self.links: queue.Queue[Dict[str, str]] = queue.Queue()
+        self.is_initial_ders = True
+        self.check_redirect_links = False
 
     def scrape(self):
         main_page: BeautifulSoup = self.get_soup_from_url(f"{self.BASE_URL}/{self.PATH}")
         if not main_page:
             return
 
-        self.collect_links(main_page, is_ders=True)
+        self.collect_links(main_page, is_ders=self.is_initial_ders)
 
         while not self.links.empty():
             link_info = self.links.get()
@@ -36,11 +38,14 @@ class GuzelSanatlarLisesiKitapScraper(BaseScraper):
         
         further_contents = page.select('.books-detail-box .books-detail-content')
         if further_contents:
-            self.collect_links(page, is_ders=False, defaults=link_info)
+            self.collect_links(page, is_ders=not self.is_initial_ders, defaults=link_info)
         else:
             self.process_books(page, link_info)
 
     def collect_links(self, page: BeautifulSoup, is_ders=True, defaults=None):
+        if defaults is None:
+            defaults = {}
+
         contents = page.select('.books-detail-box .books-detail-content')
         if not contents:
             return
@@ -62,12 +67,12 @@ class GuzelSanatlarLisesiKitapScraper(BaseScraper):
                 # scraping sinif.
                 new_link_info = {'link_2_scrape': f"{self.BASE_URL}{a_tag['href']}",
                                 'sinifPath':path, 'sinifIsmi': name,
-                                 'dersPath': defaults['dersPath'], 'dersIsmi': defaults['dersIsmi']}
+                                 'dersPath': defaults.get('dersPath', ''), 'dersIsmi': defaults.get('dersIsmi', '')}
             
             self.links.put(new_link_info)
 
     def process_books(self, page: BeautifulSoup, link_info: Dict[str, str]):
-        scraped_books = scrape_flibooks(page, check_redirect_links=False)
+        scraped_books = scrape_flibooks(page, check_redirect_links=self.check_redirect_links, domain=self.BASE_URL)
         rows = []
         
         for book in scraped_books:
