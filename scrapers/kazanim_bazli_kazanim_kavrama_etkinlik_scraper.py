@@ -5,6 +5,7 @@ import re
 
 class KazanimBazliKazanimKavramaEtkinlikScraper(BaseScraper):
     PATH = '/kazanim-kavrama-kazanim-liste'
+    FILE_NAME_PREFIX = 'Kazanim_Bazli_Kazanim_Kavrama_Etkinlik'
     FILE_HEADERS = [
         "sinifId", "sinifIsmi", 
         "dersId", "dersNo", "dersKodu", "dersIsmi", 
@@ -33,6 +34,9 @@ class KazanimBazliKazanimKavramaEtkinlikScraper(BaseScraper):
             for subject in subjects:
                 if a_ders_ids and subject["id"] not in a_ders_ids:
                     continue
+                row_values_subject = [sinif_id, self.clean_text(sinif_ismi),
+                                         subject["id"], subject["sira"], subject['kod'],
+                                         self.clean_text(subject["baslik"])]
 
                 chapters = self.get_unit_list(subject["id"])
                 for chapter in chapters:
@@ -41,31 +45,43 @@ class KazanimBazliKazanimKavramaEtkinlikScraper(BaseScraper):
                     
                     file_rows = []
                     gains = self.get_kazanim_list(chapter["id"])
+                    row_values_chapter = row_values_subject + [chapter["id"], chapter["sira"], self.clean_text(chapter["baslik"])]
+
                     for gain in gains:
                         if a_kazanim_ids and gain["id"] not in a_kazanim_ids:
                             continue
 
-                        pdfs = self.get_pdf_items(subject["urlKod"], sinif_id, subject["id"], chapter["id"], gain["id"])
+                        pdfs, is_unite_finished = self.get_pdf_items(subject["urlKod"], sinif_id, subject["id"], chapter["id"], gain["id"])
+
+                        if is_unite_finished:
+                            row_values_gain = row_values_chapter + ['', '', '', '',]
+                        else:
+                            row_values_gain = row_values_chapter + [gain["id"], gain["sira"], gain["kod"], self.clean_text(gain["baslik"])]
+
                         for pdf in pdfs:
-                            row = [ self.clean_text(item) if isinstance(item, str) else item
-                                for item in
-                                [sinif_id, sinif_ismi, subject["id"], subject["sira"], subject['kod'], subject["baslik"],
-                                chapter["id"], chapter["sira"], chapter["baslik"], gain["id"], gain["sira"],
-                                gain["kod"], gain["baslik"], pdf["pdfId"], pdf["pdfBaslik"], pdf["pdfLink"]]
-                            ]
+                            row = row_values_gain + [pdf["pdfId"], self.clean_text(pdf["pdfBaslik"]), pdf["pdfLink"]]
 
                             file_rows.append(row)
+
+                        if is_unite_finished:
+                            break
                     
                     self.write_to_csv(file_rows)
 
 
 
     def get_pdf_items(self, ders_urlKod, sinif_id: str, ders_id: int, unite_id: int, kazanim_id: int):
-        url_page = f"{self.BASE_URL}{self.PATH}/{ders_urlKod}?s={sinif_id}&d={ders_id}&u={unite_id}&k={kazanim_id}"
+        url_page = f"{self.BASE_URL}{self.PATH}?kod={ders_urlKod}&s={sinif_id}&d={ders_id}&u={unite_id}&k={kazanim_id}"
         soup = self.get_soup_from_url(url_page)
+        is_unite_finished = False
+        if not soup:
+            url_page = f"{self.BASE_URL}{self.PATH}?kod={ders_urlKod}&s={sinif_id}&d={ders_id}&u={unite_id}"
+            soup = self.get_soup_from_url(url_page)
+            if not soup:
+                return [], False
+            is_unite_finished = True
 
         pdfs = soup.select(".sidebar-content-item a")
-
         scraped_pdfs = []
         for pdf in pdfs:
             onclick_attr = pdf.get("onclick", "")
@@ -81,4 +97,6 @@ class KazanimBazliKazanimKavramaEtkinlikScraper(BaseScraper):
                     "pdfBaslik": pdf_title,
                     "pdfLink": pdf_link
                 })
+
+        return scraped_pdfs, is_unite_finished
 

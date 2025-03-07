@@ -31,6 +31,9 @@ class BaseScraper:
         # exit()
     
     def construct_clean_filename_from_title(self)->str:
+        if hasattr(self, "FILE_NAME_PREFIX"):
+            return f"{self.FILE_NAME_PREFIX}_{time.strftime('%Y%m%d_%H%M%S')}.csv"
+
         url = f"{self.BASE_URL}{self.PATH if self.PATH.startswith('/') else f'/{self.PATH}'}"
         print("URL: ", url)
         self.base_html = self.exponential_backoff_request(url)
@@ -76,7 +79,8 @@ class BaseScraper:
                 response = requests.request(method, url, headers=self.HEADERS, json=data)
                 if response.status_code == 200:
                     return response.json() if method == "POST" else response.text
-            except requests.exceptions.RequestException:
+            except requests.exceptions.RequestException as e:
+                print(f"Request failed: {e}")
                 print(f"Request failed. Retrying in {wait_time} seconds...")
                 time.sleep(wait_time)
                 wait_time *= 2
