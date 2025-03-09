@@ -1,6 +1,6 @@
-from scrapers.flip_book_with_grade_scraper_base import FlipBookWithGradeScraperBase
+from scrapers.books_with_progressive_filtering_base_scraper import BooksWithProgressiveFilteringBaseScraper
 
-class OyunVeEtkinliklerScraper(FlipBookWithGradeScraperBase):
+class OyunVeEtkinliklerScraper(BooksWithProgressiveFilteringBaseScraper):
     PATH = '/oyun-etkinlik'
     FILE_NAME_PREFIX = 'Oyun_Ve_Etkinlik_Kitaplari'
 

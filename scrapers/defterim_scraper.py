@@ -1,6 +1,6 @@
-from scrapers.flip_book_with_grade_scraper_base import FlipBookWithGradeScraperBase
+from scrapers.books_with_progressive_filtering_base_scraper import BooksWithProgressiveFilteringBaseScraper
 
-class DefterimScraper(FlipBookWithGradeScraperBase):
+class DefterimScraper(BooksWithProgressiveFilteringBaseScraper):
     PATH = '/defterim'
     FILE_NAME_PREFIX = 'Defterim_Kitaplari'
 

@@ -5,8 +5,11 @@ from bs4 import BeautifulSoup
 class InteractiveBooksScraper(BaseScraper):
     PATH = 'etkilesimli-kitaplar'
     FILE_HEADERS = [
-        "sinifId", "sinifIsmi", "dersId", "dersNo", "dersKodu", "dersIsmi", "uniteId", "uniteNo", "uniteIsmi",
-        "kazanimId", "kazanimNo", "kazanimKod", "kazanimIsmi", "kitapId", "kitapIsmi", "sayfaNo",
+        "sinifId", "sinifIsmi",
+        "dersId", "dersNo", "dersKodu", "dersIsmi",
+        "uniteId", "uniteNo", "uniteIsmi",
+        "kazanimId", "kazanimNo", "kazanimKod", "kazanimIsmi",
+        "kitapId", "kitapIsmi", "sayfaNo",
         "interaktifKitapLink", "pdfIndirmeLink", "zipIndirmeLink", "kitapThumbnailLink"
     ]
 

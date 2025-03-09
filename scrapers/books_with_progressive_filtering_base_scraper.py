@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 import queue
 from scrapers.helpers import scrape_flibooks
 
-class FlipBookWithGradeScraperBase(BaseScraper):
+class BooksWithProgressiveFilteringBaseScraper(BaseScraper):
     FILE_HEADERS = [
         "sinifPath", "sinifIsmi", "dersPath", "dersIsmi",
         "flipbookKitapLink", "pdfIndirmeLink", "zipIndirmeLink", "kitapThumbnailLink"
