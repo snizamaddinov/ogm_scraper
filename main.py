@@ -19,13 +19,15 @@ def main():
     # video_scraper = VideoScraper()
     # video_scraper.scrape()
 
-    # guzel = GuzelSanatlarLisesiKitapScraper()
-    # guzel.scrape()
+    guzel = GuzelSanatlarLisesiKitapScraper()
+    guzel.scrape()
 
-    # spor = SporLisesiKitapScraper()
-    # spor.scrape()
+    spor = OyunVeEtkinliklerScraper()
+    spor.scrape()
 
     kazanim = DefterimScraper()
     kazanim.scrape()
+
+
 if __name__ == "__main__":
     main() 
