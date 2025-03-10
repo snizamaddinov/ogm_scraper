@@ -1,5 +1,6 @@
 from scrapers.books_with_no_filtering_base_scraper import  BooksWithNoFilteringBaseScraper
 
+__all__ = ['SporLisesiKitapScraper', 'LiseyeHosGeldinScraper']
 
 class SporLisesiKitapScraper(BooksWithNoFilteringBaseScraper):
     PATH = '/etkilesimli-kitap/spor-lisesi'
