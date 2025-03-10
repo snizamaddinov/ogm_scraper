@@ -1,0 +1,255 @@
+You are an experienced python developer with extensive knowledge in web scraping, working with strings, files, and requests. you help users to solve their problems using your knowledge.
+
+User: I want to scrape a website and save the video data to csv. all scraping and each step is sequentially handled,
+Use the details below:
+
+
+To get initial html 
+https://ogmmateryal.eba.gov.tr/ebatv-ogm/Default.aspx GET
+
+Get grade ids from:
+<select id="dlSinif" class="form-select">
+    <option value="0" selected="">Sınıf</option>
+    <option value="6">9. Sınıf</option>
+    <option value="7">10. Sınıf</option>
+    <option value="8">11. Sınıf</option>
+    <option value="9">12. Sınıf</option>
+</select>
+
+
+from selected grade take `sinifId` and `sinif` columns
+
+get subjects with selected grade (sinifId):
+https://ogmmateryal.eba.gov.tr/api/ders-listele/<sinifId> POST
+[
+    {
+        "id": 8,
+        "sinifId": 9,
+        "baslik": "Biyoloji",
+        "sira": 1,
+        "kod": "BIY",
+        "ikon": "fas fa-dna",
+        "goster": true,
+        "eKitap": false,
+        "soruHavuzu": false,
+        "dersIdler": null,
+        "sinifIdler": null,
+        "urlKod": "biyoloji"
+    },
+    {
+        "id": 12,
+        "sinifId": 9,
+        "baslik": "Coğrafya",
+        "sira": 2,
+        "kod": "COG",
+        "ikon": "fas fa-globe-africa",
+        "goster": true,
+        "eKitap": false,
+        "soruHavuzu": false,
+        "dersIdler": null,
+        "sinifIdler": null,
+        "urlKod": "cografya"
+    },
+    {
+        "id": 101,
+        "sinifId": 9,
+        "baslik": "Din Kültürü ve Ahlâk Bilgisi",
+        "sira": 14,
+        "kod": "DIKAB",
+        "ikon": "fas fa-dna",
+        "goster": true,
+        "eKitap": false,
+        "soruHavuzu": false,
+        "dersIdler": null,
+        "sinifIdler": null,
+        "urlKod": "dikab"
+    }...
+]
+
+from selected subject take: `dersId`, `dersNo`, `ders` fields
+
+get chapters with selected subject (dersId):
+can be empty, then default value is 0 (zero)
+https://ogmmateryal.eba.gov.tr/api/unite-listele/<dersId> POST
+
+Response:
+[
+    {
+        "id": 48,
+        "sinifId": 9,
+        "dersId": 12,
+        "baslik": "chapterName1",
+        "sira": 1
+    },
+    {
+        "id": 49,
+        "sinifId": 9,
+        "dersId": 12,
+        "baslik": "chapterName2",
+        "sira": 2
+    },
+    {
+        "id": 51,
+        "sinifId": 9,
+        "dersId": 12,
+        "baslik": "chapterName3",
+        "sira": 4
+    }...
+]
+
+from selected chapter take: `uniteId`, `uniteNo` and `unite` fields
+
+get gains with selected chapter:
+https://ogmmateryal.eba.gov.tr/api/kazanim-listele/<uniteId> POST
+can be empty, then default value is 0 (zero)
+
+Response:
+[
+    {
+        "id": 101,
+        "sinifId": 9,
+        "dersId": 12,
+        "uniteId": 49,
+        "baslik": "12.2.1.- Gain_name1",
+        "sira": 1,
+        "sayfaNo": 41,
+        "srSoruKazanimlar": null
+    },
+    {
+        "id": 102,
+        "sinifId": 9,
+        "dersId": 12,
+        "uniteId": 49,
+        "baslik": "12.2.2.- Gain_name2",
+        "sira": 2,
+        "sayfaNo": 47,
+        "srSoruKazanimlar": null
+    },
+    {
+        "id": 103,
+        "sinifId": 9,
+        "dersId": 12,
+        "uniteId": 49,
+        "baslik": "12.2.3.- Gain_name3",
+        "sira": 3,
+        "sayfaNo": 49,
+        "srSoruKazanimlar": null
+    }...
+]
+
+from selected gains take: `kazanimId`, `kazanimNo`, `kazanim` columns
+
+
+Get html page with selected grade, subject, chapter aand gain ids:
+https://ogmmateryal.eba.gov.tr/ebatv-ogm/VideoListele.aspx?s=<sinifId>&d=<dersId>&u=<uniteId>&k=<kazanimId>
+
+In the response html look for the following section:
+<section class="ogm-yks-training pt-4 pb-5">
+    <div class="container-xl">
+        <div class="section-title">
+            <h2>Ders Anlatım Videoları</h2>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="yks-training-sidebar">
+                    <div class="row g-0">
+                        
+                                <div class="col-12 col-lg-6 g-0">
+                                    <div class="sidebar-content-item">
+                                        <div class="content-item-head" style="width:98%;">
+                                            <div class="head-text" style="width:98%;">
+                                                <a href="#" class="btn btn-info w-100" style="text-align: left; background-color: #0c7cac; color: #fff" onclick="videoGoster('aes0ea1dsvq.mp4', this); return false;">
+                                                    <svg class="svg-inline--fa fa-right-long" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="right-long" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" data-fa-i2svg=""><path fill="currentColor" d="M504.3 273.6l-112.1 104c-6.992 6.484-17.18 8.218-25.94 4.406c-8.758-3.812-14.42-12.45-14.42-21.1L351.9 288H32C14.33 288 .0002 273.7 .0002 255.1S14.33 224 32 224h319.9l0-72c0-9.547 5.66-18.19 14.42-22c8.754-3.809 18.95-2.075 25.94 4.41l112.1 104C514.6 247.9 514.6 264.1 504.3 273.6z"></path></svg><!-- <i class="fas fa-long-arrow-alt-right"></i> Font Awesome fontawesome.com -->&nbsp;BİR DİZİNİN GENEL TERİMİ VE İNDİRGEME BAĞINTISI
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            
+                                <div class="col-12 col-lg-6 g-0">
+                                    <div class="sidebar-content-item">
+                                        <div class="content-item-head" style="width:98%;">
+                                            <div class="head-text" style="width:98%;">
+                                                <a href="#" class="btn btn-info w-100" style="text-align: left; background-color: #0c7cac; color: #fff" onclick="videoGoster('vmjjcdiv1wj.mp4', this); return false;">
+                                                    <svg class="svg-inline--fa fa-right-long" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="right-long" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" data-fa-i2svg=""><path fill="currentColor" d="M504.3 273.6l-112.1 104c-6.992 6.484-17.18 8.218-25.94 4.406c-8.758-3.812-14.42-12.45-14.42-21.1L351.9 288H32C14.33 288 .0002 273.7 .0002 255.1S14.33 224 32 224h319.9l0-72c0-9.547 5.66-18.19 14.42-22c8.754-3.809 18.95-2.075 25.94 4.41l112.1 104C514.6 247.9 514.6 264.1 504.3 273.6z"></path></svg><!-- <i class="fas fa-long-arrow-alt-right"></i> Font Awesome fontawesome.com -->&nbsp;DİZİLERLE İLGİLİ SORU ÇÖZÜMÜ
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            
+
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-12">
+                <div class="yks-training-content">
+                    <div class="alert alert-info" role="alert" style=" display: none;">
+                        
+                        @{
+                            if (Model.Videolar.Count &gt; 0)
+                            {
+                                <span>@Html.Raw("Konu başlıklarına tıklayarak ilgili içeriği görüntüleyebilirsiniz.")</span>
+                            }
+                            else
+                            {
+                                <span>@Html.Raw("Aradığınız kritere uygun içerik bulunamadı!")</span>
+                            }
+                        }
+                    </div>
+                    <div id="videoDiv" style="width: 100%;">
+                        <video id="video" controls="controls" width="100%" style="border-radius: 3px; display:none;">
+                            <source src="" type="video/mp4">
+                        </video>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+for columns: videoId, videoBaslik, videoLink
+
+For each div with sidebar-content-item, take anchor tag and extract following from it:
+- take text inside anchor tag as videoBaslik
+- look for onclick value: onclick="videoGoster('aes0ea1dsvq.mp4', this); extract first parameter: aes0ea1dsvq.mp4 - take it as videoId
+- after taking videoId construct the videoLink: `https://ogmmateryal.eba.gov.tr/ebatv-ogm/upload/uzev-480/<videoId>` - static link.
+
+
+I have prepared some functions to use:
+
+Use this method to clean each column value before saving.
+```python
+def clean_text(text):
+    if not text:
+        return ""
+    apostrophe_variants = [
+        '\u2019', '\u2018', '\u2032', '\u0060', '\u00B4', '\u02BC', '\u02BB', '\u02BD', '\u0022',
+        '\u201C', '\u201D', '\u201E', '\u2033', '\u2036', '\u275D'
+    ]
+    pattern = "|".join(apostrophe_variants)
+    text = re.sub(pattern, "'", text)
+    text = re.sub(r"[\n\r\t]", " ", text)
+    text = re.sub(r"\s{2,}", " ", text)
+    return text.strip()
+```
+
+use this function to make request so that it will handle potential block.
+
+```python
+def exponential_backoff_request(url, method="GET", data=None, max_retries=5):
+    wait_time = 4  # Start with 4 seconds
+    for _ in range(max_retries):
+        try:
+            response = requests.request(method, url, headers=HEADERS, json=data)
+            if response.status_code == 200:
+                return response.json() if method == "POST" else response.text
+        except requests.exceptions.RequestException:
+            pass
+        print(f"Request failed. Retrying in {wait_time} seconds...")
+        time.sleep(wait_time)
+        wait_time *= 2  # Exponential backoff
+    return None
+```
