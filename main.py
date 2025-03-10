@@ -11,6 +11,11 @@ from scrapers.oyun_ve_etkinlikler_scraper import OyunVeEtkinliklerScraper
 from scrapers.liseye_hos_geldin import LiseyeHosGeldinScraper
 from scrapers.defterim_scraper import DefterimScraper
 from scrapers.beceri_temelli_etkilesimli_kitaplar import BeceriTemelliEtkilesimliKitaplarScraper
+from scrapers.yks_hazirlik_menu_no_filtering import *
+
+
+
+
 def main():
     # Scrape interactive books
     # books_scraper = InteractiveBooksScraper()
@@ -20,8 +25,16 @@ def main():
     # video_scraper = VideoScraper()
     # video_scraper.scrape()
 
-    guzel = LiseyeHosGeldinScraper()
-    guzel.scrape()
+    MEBIKonuOzetiKitaplariScraper().scrape()
+    YksCikmisSoruKitaplariScraper().scrape()
+    DortDortlukKonuPekistirmeTestleriScraper().scrape()
+    Yks3AdimDenemeSinavlariScraper().scrape()
+    Yks3AdmiSoruBankasiScraper().scrape()
+    YksKampiScraper().scrape()
+    RehberlikScraper().scrape()
+    
+
+
 
     # spor = OyunVeEtkinliklerScraper()
     # spor.scrape()
