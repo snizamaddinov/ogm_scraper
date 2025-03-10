@@ -1,7 +1,0 @@
-interaktifKitaplar:
-sinifId,sinif,dersId,dersNo,ders,uniteId,uniteNo,unite,kazanimId,kazanimNo,kazanim,kitapId,kitapIsmi,sayfaNo,interaktifKitapLink,pdfIndirmeLink,zipIndirmeLink,thumbnailLink
-
-Notes for columns:
-some_columnId is `id` field of each response
-some_columnNo is `sira` field of each response (except sayfaNo discussed below)
-some_column is `baslik` field of each response
