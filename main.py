@@ -28,7 +28,7 @@ def main():
     # Yks3AdimDenemeSinavlariScraper().scrape()
     # Yks3AdmiSoruBankasiScraper().scrape()
     # YksKampiScraper().scrape()
-    # RehberlikScraper().scrape()
+    RehberlikScraper().scrape()
 
 
 
