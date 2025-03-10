@@ -20,7 +20,7 @@ def main():
     # video_scraper = VideoScraper()
     # video_scraper.scrape()
 
-    guzel = BeceriTemelliEtkilesimliKitaplarScraper()
+    guzel = LiseyeHosGeldinScraper()
     guzel.scrape()
 
     # spor = OyunVeEtkinliklerScraper()
