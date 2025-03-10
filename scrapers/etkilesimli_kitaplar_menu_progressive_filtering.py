@@ -1,5 +1,12 @@
 from scrapers.books_with_progressive_filtering_base_scraper import BooksWithProgressiveFilteringBaseScraper
 
+__all__ = [
+    'GuzelSanatlarLisesiKitapScraper',
+    'OyunVeEtkinliklerScraper',
+    'DefterimScraper'
+]
+
+
 class GuzelSanatlarLisesiKitapScraper(BooksWithProgressiveFilteringBaseScraper):
     PATH = '/etkilesimli-kitap/guzel-sanatlar-lisesi'
     FILE_NAME_PREFIX = 'Guzel_Sanatlar_Lisesi_Kitaplari'
