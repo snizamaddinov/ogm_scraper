@@ -21,7 +21,6 @@
   - Beceri Temelli etkileşimli kitaplar
 
 - Etkileşimli Kitaplar
-  - Ders Kitapları - more detailed
   - Kazanım Kavrama Etkinlikleri -> Kazanım Kavrama Etkileşimli Kitap
   - Kavram Öğretim Çalışmaları -> Kavram Öğretimi Ektileşimli Kitap
   - Çalışma Defterleri
@@ -55,3 +54,10 @@
 ### pages with list of books and video links, with filtering
 - YKS Hazirlik (menu): 
   - YKS Konu Anlatımları (Video)
+
+### Special pages with detailed data:
+- Etkileşimli Kitaplar
+  - Ders Kitapları
+
+- Ders anlatımı (menu)
+  - Ders Anlatım Videolarıs

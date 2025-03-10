@@ -10,6 +10,7 @@ from scrapers.kazanim_bazli_kavram_ogretimi_etkilesimli_kitap_scraper import Kaz
 from scrapers.oyun_ve_etkinlikler_scraper import OyunVeEtkinliklerScraper
 from scrapers.liseye_hos_geldin import LiseyeHosGeldinScraper
 from scrapers.defterim_scraper import DefterimScraper
+from scrapers.beceri_temelli_etkilesimli_kitaplar import BeceriTemelliEtkilesimliKitaplarScraper
 def main():
     # Scrape interactive books
     # books_scraper = InteractiveBooksScraper()
@@ -19,14 +20,14 @@ def main():
     # video_scraper = VideoScraper()
     # video_scraper.scrape()
 
-    guzel = GuzelSanatlarLisesiKitapScraper()
+    guzel = BeceriTemelliEtkilesimliKitaplarScraper()
     guzel.scrape()
 
-    spor = OyunVeEtkinliklerScraper()
-    spor.scrape()
+    # spor = OyunVeEtkinliklerScraper()
+    # spor.scrape()
 
-    kazanim = DefterimScraper()
-    kazanim.scrape()
+    # kazanim = DefterimScraper()
+    # kazanim.scrape()
 
 
 if __name__ == "__main__":

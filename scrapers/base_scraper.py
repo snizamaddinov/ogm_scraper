@@ -96,20 +96,22 @@ class BaseScraper:
     def fetch_grades(self, html: str=None) -> List[Tuple[str, str]]:
         if not html:
             url = f"{self.BASE_URL}{self.PATH if self.PATH.startswith('/') else f'/{self.PATH}'}"
-            print("URL: ", url)
             html = self.exponential_backoff_request(url)
 
+        default = [("0", "")]
         if not html:
-            return []
+            return default
         
         if isinstance(html, BeautifulSoup):
             soup = html
         else:
             soup = BeautifulSoup(html, "lxml")
     
-        return [(opt["value"], opt.text.strip()) 
+        values = [(opt["value"], opt.text.strip()) 
                 for opt in soup.select("select#dlSinif option[value]") 
                 if opt["value"] != "0"]
+
+        return values or default
 
     def write_to_csv(self, rows: List[List[str]]):
         file_exists = os.path.isfile(self.FILE_PATH)
@@ -140,13 +142,54 @@ class BaseScraper:
             return last_line_dict
 
     def get_subject_list(self, sinif_id: str) -> List[Dict]:
-        return self.exponential_backoff_request(f"{self.BASE_URL}/api/ders-listele/{sinif_id}", "POST") or []
+        default = [
+            {
+                "id": 0,
+                "sinifId": 0,
+                "baslik": "",
+                "sira": 0,
+                "kod": "",
+                "urlKod": ""
+            }
+        ]
+
+        if not sinif_id:
+            return default
+        
+        return self.exponential_backoff_request(f"{self.BASE_URL}/api/ders-listele/{sinif_id}", "POST") or default
 
     def get_unit_list(self, ders_id: int) -> List[Dict]:
-        return self.exponential_backoff_request(f"{self.BASE_URL}/api/unite-listele/{ders_id}", "POST") or []
+        default = [
+             {
+                "id": 0,
+                "sinifId": 0,
+                "dersId": 0,
+                "baslik": "",
+                "sira": 0
+            },
+        ]
+
+        if not ders_id:
+            return default
+        
+        return self.exponential_backoff_request(f"{self.BASE_URL}/api/unite-listele/{ders_id}", "POST") or default
 
     def get_kazanim_list(self, unite_id: int) -> List[Dict]:
-        gains = self.exponential_backoff_request(f"{self.BASE_URL}/api/kazanim-listele/{unite_id}", "POST") or []
+        default = [
+            {
+                "id": 0,
+                "sinifId": 0,
+                "dersId": 0,
+                "uniteId": 0,
+                "baslik": "",
+                "sira": 0,
+                "sayfaNo": 28
+            },
+        ]
+
+        if not unite_id:
+            return default
+        gains = self.exponential_backoff_request(f"{self.BASE_URL}/api/kazanim-listele/{unite_id}", "POST") or default
         for gain in gains:
             gain["kod"] = self.get_kazanim_code(gain["baslik"])
 
