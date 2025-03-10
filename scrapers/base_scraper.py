@@ -77,6 +77,7 @@ class BaseScraper:
         wait_time = 4
         for _ in range(max_retries):
             try:
+                print("URL: ", url)
                 response = requests.request(method, url, headers=self.HEADERS, json=data)
                 if response.status_code == 200:
                     return response.json() if method == "POST" else response.text
