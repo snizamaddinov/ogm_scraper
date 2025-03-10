@@ -4,6 +4,7 @@ from scrapers.yks_hazirlik_menu_no_filtering import *
 from scrapers.etkilesimli_kitaplar_menu_progressive_filtering import *
 from scrapers.ders_anlatimi_menu_pdf_links_with_filtering import *
 from scrapers.yks_hazirlik_menu_book_and_video_no_filtering import *
+from scrapers.yks_hazirlik_menu_book_and_video_with_filtering import *
 
 def main():
     # Scrape interactive books
@@ -22,7 +23,7 @@ def main():
     # YksKampiScraper().scrape()
     # KonuOzetleriScraper().scrape()
     # DersAnlatimSunulariScraper().scrape()
-    YKSKampiPdfVideoScraper().scrape()
+    YksKonuAnlatimlariVideoScraper().scrape()
     # CevrimiciDenemelerScraper().scrape()
 
 

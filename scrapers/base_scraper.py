@@ -114,6 +114,27 @@ class BaseScraper:
 
         return values or default
 
+    def fetch_subjects(self, html: str=None) -> List[Tuple[str, str]]:
+        if not html:
+            url = f"{self.BASE_URL}{self.PATH if self.PATH.startswith('/') else f'/{self.PATH}'}"
+            html = self.exponential_backoff_request(url)
+
+        default = [("DIN", "")]
+        if not html:
+            return default
+
+        if isinstance(html, BeautifulSoup):
+            soup = html
+        else:
+            soup = BeautifulSoup(html, "lxml")
+
+        values = [(opt["value"], opt.text.strip())
+                  for opt in soup.select("select#dlDersKodu option[value]")
+                  if opt["value"] != "0"]
+
+        return values or default
+
+
     def write_to_csv(self, rows: List[List[str]]):
         file_exists = os.path.isfile(self.FILE_PATH)
         

@@ -1,5 +1,7 @@
 from bs4 import BeautifulSoup
 import requests
+from urllib.parse import urlparse, parse_qs
+
 
 def scrape_flibooks(soup: BeautifulSoup, check_redirect_links=False, domain=None)->list[dict[str, str]]:
     books = soup.select('.books-detail-action-content')
@@ -37,3 +39,33 @@ def scrape_flibooks(soup: BeautifulSoup, check_redirect_links=False, domain=None
         })
 
     return scraped_books
+
+
+def get_video_data_from_url(url, text_cleaner: callable=None):
+    if text_cleaner is None:
+        text_cleaner = lambda x: x
+
+    if not url:
+        return {
+            'id': '',
+            'playlist_id': '',
+            'time': '',
+            'link': ''
+        }
+
+    parsed_url = urlparse(url)
+
+    query_params = parse_qs(parsed_url.query)
+    playlist_id = query_params.get('list', [None])[0]
+    time = query_params.get('t', [None])[0]
+    if query_params.get('v'):
+        video_id = query_params.get('v')[0]
+    else:
+        video_id = parsed_url.path.split('/')[-1]
+
+    return {
+        'id': video_id,
+        'playlist_id': playlist_id,
+        'time': text_cleaner(time),
+        'link': url
+    }
