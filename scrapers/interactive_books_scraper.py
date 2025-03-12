@@ -12,6 +12,7 @@ class InteractiveBooksScraper(BaseScraper):
         "kitapId", "kitapIsmi", "sayfaNo",
         "interaktifKitapLink", "pdfIndirmeLink", "zipIndirmeLink", "kitapThumbnailLink"
     ]
+    FILE_NAME_PREFIX = 'Etkilesimli_Kitaplar'
 
 
     def get_books(self, sinifId: str, dersId: int, uniteId: int, kazanimId: int, urlKod: str) -> List[Dict]:

@@ -9,6 +9,7 @@ class VideoScraper(BaseScraper):
         "kazanimId", "kazanimNo", "kazanimKod", "kazanimIsmi", 'videoId', 'videoBaslik', 'videoLink'
     ]
     VIDEO_DOWNLOAD_LINK = "https://ogmmateryal.eba.gov.tr/ebatv-ogm/upload/uzev-480/{video_id}_1.mp4"
+    FILE_NAME_PREFIX = 'Ders_Anlatim_Videolari'
 
     def __init__(self):
         super().__init__()

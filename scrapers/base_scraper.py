@@ -12,6 +12,8 @@ class BaseScraper:
     BASE_URL = "https://ogmmateryal.eba.gov.tr"
     HEADERS = {"User-Agent": "Mozilla/5.0"}
     DATA_FOLDER = 'data' #TODO take from env
+    FILE_HEADERS = []
+    FILE_NAME_PREFIX = None
 
     def __init__(self):
         self.compiled_patterns = {

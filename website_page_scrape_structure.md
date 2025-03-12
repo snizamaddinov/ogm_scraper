@@ -1,6 +1,6 @@
 
 
-### pages with list of books, no filtering (list_of_books_with_no_filtering_base_scraper.py)
+### pages with list of books, no filtering (books_with_no_filtering_base_scraper.py)
  only links should be checked for redirections
  
 - YKS Hazirlik (menu):
@@ -16,7 +16,7 @@
   - Spor Lisesi Kitapları
   - Liseye Hoş geldin
 
-### pages with list of books, with filtering (list_of_books_with_filtering_base_scraper.py)
+### pages with list of books, with filtering (books_with_filtering_base_scraper.py)
 - Beceri Temelli Kitaplar
   - Beceri Temelli etkileşimli kitaplar
 
@@ -26,7 +26,7 @@
   - Çalışma Defterleri
 
 
-### pages with list of books, with progressive filtering - links scraped from the first page (list_of_books_with_progressive_filtering_base_scraper.py)
+### pages with list of books, with progressive filtering - links scraped from the first page (books_with_progressive_filtering_base_scraper.py)
 - Etkileşimli Kitaplar
   - Güzel Sanatlar Lisesi Kitapları
   - Oyun ve Ektinlik Kitapları
@@ -45,13 +45,13 @@
     - Kavram Öğretim Çalışmaları -> Kazanım Bazlı Kavram Öğretimi Ektileşimli Kitaplar
 
 
-### pages with list of books and video links, no filtering
+### pages with list of books and video links, no filtering (book_and_video_no_filtering_base_scraper.py)
 - YKS Hazirlik (menu):
   - YKS Kampı
   - Çevrimiçi denemeler
 
 
-### pages with list of books and video links, with filtering
+### pages with list of books and video links, with filtering (book_and_video_with_filtering_base_scraper.py)
 - YKS Hazirlik (menu): 
   - YKS Konu Anlatımları (Video)
 
