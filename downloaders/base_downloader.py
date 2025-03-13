@@ -1,3 +1,4 @@
+import logging
 from typing import Set, Tuple
 from abc import ABCMeta, abstractmethod
 import pathlib
@@ -8,8 +9,26 @@ from requests.adapters import HTTPAdapter, Retry
 import requests
 from urllib import parse
 
+class Logger(logging.Logger):
+    PATH = 'logs/downloaders'
+
+    def __init__(self, name, level=logging.NOTSET):
+        super().__init__(name, level)
+
+        path = pathlib.Path(self.PATH)
+        path.mkdir(parents=True, exist_ok=True)
+        log_file = path / f"{name}.log"
+
+        self.setLevel(level)
+        handler = logging.FileHandler(log_file)
+        handler.setLevel(level)
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        handler.setFormatter(formatter)
+        self.addHandler(handler)
+
 class BaseDownloader(metaclass=ABCMeta):
     DATA_FOLDER = 'downloaded_pdf_files'
+    LOG_FOLDER = 'logs/downloaders'
 
     def __init__(self):
         self.processed_rows: Set = set()
@@ -17,6 +36,8 @@ class BaseDownloader(metaclass=ABCMeta):
         self.session = requests.Session()
         retries = Retry(total=5, backoff_factor=1, status_forcelist=[500, 502, 503, 504])
         self.session.mount("https://", HTTPAdapter(max_retries=retries))
+
+        self.logger = Logger(self.__class__.__name__)
 
     @abstractmethod
     def get_download_link(self) -> str:
@@ -53,24 +74,24 @@ class BaseDownloader(metaclass=ABCMeta):
         for download_link, file_name in self.unique_row_generator():
             if os.path.exists(file_name):
                 self.processed_rows.add(file_name)
+                self.logger.info(f"File already exists: {file_name}")
                 continue
 
             try:
-                with self.session.get(download_link, stream=True, timeout=10) as response:
+                with (self.session.get(download_link, stream=True, timeout=10) as response):
                     if response.status_code == 200:
-
                         with open(file_name, 'wb') as file:
                             for chunk in response.iter_content(chunk_size=1024):
                                 if chunk:
                                     file.write(chunk)
 
-                        print(f"Downloaded: {file_name}")
+                        self.logger.info(f"Downloaded: {file_name}")
                         self.processed_rows.add(file_name)
                     else:
-                        print(f"Failed to download {download_link}: {response.status_code}")
+                        self.logger.error(f"Failed to download {download_link}: {response.status_code}")
 
             except requests.RequestException as e:
-                print(f"Failed to download {download_link}: {e}")
+                self.logger.error(f"Failed to download {download_link}: {e}")
 
 
 class ScraperClassDownloader(BaseDownloader, metaclass=ABCMeta):
@@ -88,6 +109,8 @@ class ScraperClassDownloader(BaseDownloader, metaclass=ABCMeta):
         self.processed_files = set()
         self.current_processed_file_prefix = None
 
+        self.logger.info(f"Started to process files for {self.__class__.__name__}")
+
     def get_classes_to_scrape(self):
         return self.SCRAPER_CLASS.__subclasses__()
 
@@ -104,6 +127,7 @@ class ScraperClassDownloader(BaseDownloader, metaclass=ABCMeta):
             return False
 
         if not self.get_download_link():
+            self.logger.warning(f"Download link is not found for {self.current_row}")
             return False
 
         return True
@@ -139,16 +163,23 @@ class ScraperClassDownloader(BaseDownloader, metaclass=ABCMeta):
     def unique_row_generator(self):
         file_names = self.file_name_generator()
         for prefix, file_name in file_names:
-            self.current_processed_file_prefix = prefix
-            self.processed_files.add(prefix)
+            try:
+                self.current_processed_file_prefix = prefix
+                self.processed_files.add(prefix)
+                self.logger.info(f"Processing: {prefix}")
+                count = 0
+                with open(file_name, 'r', encoding='utf-8-sig') as f:
+                    reader = csv.DictReader(f)
+                    for row in reader:
+                        self.current_row = row
+                        if self.is_valid_row() and not self.is_processed_row():
+                            yield self.get_download_link(), self.get_final_path()
 
-            with open(file_name, 'r', encoding='utf-8-sig') as f:
-                reader = csv.DictReader(f)
-                for row in reader:
+                            count += 1
 
-                    self.current_row = row
-                    if self.is_valid_row() and not self.is_processed_row():
-                        yield self.get_download_link(), self.get_final_path()
+                self.logger.info(f"Total number of processed rows for {prefix}: {count}")
+            except Exception as e:
+                self.logger.error(f"Failed to process {prefix}: {e}")
 
 
 class ScraperVideoDownloader(ScraperClassDownloader):
@@ -164,6 +195,7 @@ class ScraperVideoDownloader(ScraperClassDownloader):
 
         parsed = parse.urlparse(link)
         if any([domain in parsed.netloc for domain in self.YOUTUBE_DOMAINS]):
+            self.logger.info(f"Skipping youtube video: {link}")
             return False
 
         return True
