@@ -89,6 +89,9 @@ class VideoScraper(BaseScraper):
 
                             video_title = self.clean_text(video.get_text())
                             video_id = self.clean_text(video_id.group(1))
+                            if '.mp4' in video_id:
+                                video_id = video_id.replace('.mp4', '')
+
                             video_link = self.VIDEO_DOWNLOAD_LINK.format(video_id=video_id)
 
                             row = [ self.clean_text(item) if isinstance(item, str) else item

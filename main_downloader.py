@@ -1,4 +1,4 @@
-from downloaders.files_with_id_downloader import (
+from downloaders.pdf_downloaders import (
     BooksAndVideoNoFilteringDownloader,
     BooksAndVideoWithFilteringDownloader,
     BooksWithFilteringDownloader,
@@ -6,22 +6,37 @@ from downloaders.files_with_id_downloader import (
     BooksWithProgressiveFilteringDownloader,
     PdfLinksWithFilteringDownloader)
 
+from downloaders.video_downloaders import (
+BooksAndVideoWithFilteringVideoDownloader,
+BooksAndVideoNoFilteringVideoDownloader,
+VideoDownloader
+)
 
-def main():
-    downloader = PdfLinksWithFilteringDownloader()
-    downloader.download()
 
-    BooksWithProgressiveFilteringDownloader().download()
-    BooksWithNoFilteringDownloader().download()
-    BooksWithFilteringDownloader().download()
-    BooksAndVideoWithFilteringDownloader().download()
+def pdf_downloader():
     BooksAndVideoNoFilteringDownloader().download()
+    BooksAndVideoWithFilteringDownloader().download()
+    BooksWithFilteringDownloader().download()
+    BooksWithNoFilteringDownloader().download()
+    BooksWithProgressiveFilteringDownloader().download()
+    PdfLinksWithFilteringDownloader().download()
 
-
-
-    # d2 =   PdfLinksWithFilteringDownloader()
+def video_downloader():
+    BooksAndVideoWithFilteringVideoDownloader().download()
+    BooksAndVideoNoFilteringVideoDownloader().download()
+    VideoDownloader().download()
 
 
 if __name__ == "__main__":
-    main()
+    pdf_i = input("Do you want to download pdfs? (y/n): ")
+    video_i = input("Do you want to download videos? (y/n): ")
 
+    if pdf_i.lower() == 'y':
+        pdf_downloader()
+    else:
+        print("No pdfs will be downloaded.")
+
+    if video_i.lower() == 'y':
+        video_downloader()
+    else:
+        print("No videos will be downloaded.")

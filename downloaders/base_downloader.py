@@ -1,16 +1,22 @@
 from typing import Set, Tuple
 from abc import ABCMeta, abstractmethod
 import pathlib
-from .helpers import request_with_backoff
 from scrapers.base_scraper import BaseScraper
 import csv
 import os
+from requests.adapters import HTTPAdapter, Retry
+import requests
+from urllib import parse
 
 class BaseDownloader(metaclass=ABCMeta):
-    DATA_FOLDER = 'downloaded_data'
+    DATA_FOLDER = 'downloaded_pdf_files'
+
     def __init__(self):
         self.processed_rows: Set = set()
         self.current_row: dict = dict()
+        self.session = requests.Session()
+        retries = Retry(total=5, backoff_factor=1, status_forcelist=[500, 502, 503, 504])
+        self.session.mount("https://", HTTPAdapter(max_retries=retries))
 
     @abstractmethod
     def get_download_link(self) -> str:
@@ -30,40 +36,50 @@ class BaseDownloader(metaclass=ABCMeta):
 
     def get_final_path(self) -> str:
         relative_path = self.get_relative_path()
-        print("Accepted relative path: ", relative_path)
         file_name = self.get_output_filename()
-        print("Accepted file name: ", file_name)
         final_path = os.path.join(relative_path, file_name)
-        print("Final name2: ", final_path)
 
         path = pathlib.Path(relative_path)
         path.mkdir(parents=True, exist_ok=True)
 
-        print("Final path is created: ", final_path)
         return final_path
 
     def is_processed_row(self):
         current_row_final_path = self.get_final_path()
-        return current_row_final_path in self.processed_rows
+        result = current_row_final_path in self.processed_rows
+        return result
 
     def download(self):
         for download_link, file_name in self.unique_row_generator():
-            if not os.path.exists(file_name):
-                response = request_with_backoff(download_link)
-                with open(file_name, 'wb') as file:
-                    file.write(response.content)
-            self.processed_rows.add(file_name)
+            if os.path.exists(file_name):
+                self.processed_rows.add(file_name)
+                continue
+
+            try:
+                with self.session.get(download_link, stream=True, timeout=10) as response:
+                    if response.status_code == 200:
+
+                        with open(file_name, 'wb') as file:
+                            for chunk in response.iter_content(chunk_size=1024):
+                                if chunk:
+                                    file.write(chunk)
+
+                        print(f"Downloaded: {file_name}")
+                        self.processed_rows.add(file_name)
+                    else:
+                        print(f"Failed to download {download_link}: {response.status_code}")
+
+            except requests.RequestException as e:
+                print(f"Failed to download {download_link}: {e}")
 
 
 class ScraperClassDownloader(BaseDownloader, metaclass=ABCMeta):
-    scraper_class: BaseScraper
+    SCRAPER_CLASS: BaseScraper
 
     def __init__(self):
         super().__init__()
         self.current_processed_file = None
         self.classes_to_scrape: list[BaseScraper] = self.get_classes_to_scrape()
-        print("Classes to scrape: ", self.classes_to_scrape)
-        # exit()
         self.file_name_prefixes: list[str] = self.get_file_name_prefixes()
 
         self.source_data_path: pathlib.Path = self.get_data_path()
@@ -73,19 +89,21 @@ class ScraperClassDownloader(BaseDownloader, metaclass=ABCMeta):
         self.current_processed_file_prefix = None
 
     def get_classes_to_scrape(self):
-        return self.scraper_class.__subclasses__()
+        return self.SCRAPER_CLASS.__subclasses__()
 
     def get_relative_path(self, extras: list[str] = None) -> str:
         if not extras:
             extras = []
 
         path = os.path.join(self.destination_data_path, self.current_processed_file_prefix, *extras)
-        print("path44: ", path)
 
         return path
 
     def is_valid_row(self)-> bool:
         if not self.current_row:
+            return False
+
+        if not self.get_download_link():
             return False
 
         return True
@@ -109,8 +127,6 @@ class ScraperClassDownloader(BaseDownloader, metaclass=ABCMeta):
         return data_path
 
     def file_name_generator(self):
-        print("file_name_generator")
-        print("file_name_prefixes: ", self.file_name_prefixes)
         for file_name_prefix in self.file_name_prefixes:
             if not file_name_prefix in self.processed_files:
                 files = self.source_data_path.glob(f"{file_name_prefix}_*.csv")
@@ -121,11 +137,8 @@ class ScraperClassDownloader(BaseDownloader, metaclass=ABCMeta):
 
 
     def unique_row_generator(self):
-        print("Unique row generator")
-        print("Counter: 0")
         file_names = self.file_name_generator()
         for prefix, file_name in file_names:
-            count = 0
             self.current_processed_file_prefix = prefix
             self.processed_files.add(prefix)
 
@@ -135,9 +148,32 @@ class ScraperClassDownloader(BaseDownloader, metaclass=ABCMeta):
 
                     self.current_row = row
                     if self.is_valid_row() and not self.is_processed_row():
-                        print("Processing row: ", count)
-                        count += 1
                         yield self.get_download_link(), self.get_final_path()
-                        if count > 1:
-                            print("Breaking..")
-                            break
+
+
+class ScraperVideoDownloader(ScraperClassDownloader):
+    DATA_FOLDER = 'downloaded_video_files'
+    SCRAPER_CLASS = BaseScraper
+    YOUTUBE_DOMAINS = ['youtube.com', 'youtu.be']
+
+    def is_valid_row(self) -> bool:
+        if not super().is_valid_row():
+            return False
+
+        link = self.get_download_link()
+
+        parsed = parse.urlparse(link)
+        if any([domain in parsed.netloc for domain in self.YOUTUBE_DOMAINS]):
+            return False
+
+        return True
+
+    def get_download_link(self) -> str:
+        return self.current_row['videoLink']
+
+    def get_output_filename(self) -> str:
+        unique_id = self.current_row['videoId']
+        if '.mp4' not in unique_id:
+            unique_id = f"{unique_id}.mp4"
+
+        return unique_id
