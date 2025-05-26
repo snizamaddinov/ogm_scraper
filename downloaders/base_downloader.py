@@ -277,9 +277,6 @@ class ScraperClassDownloader(BaseDownloader, metaclass=ABCMeta):
 
                         processed_rows_2_update.append(self.current_row)
 
-                        if count > 0:
-                            break
-
                 self.logger.info(f"Total number of processed rows for {prefix}: {count}")
 
                 with open(file_name, 'w', encoding='utf-8-sig', newline="") as f:
