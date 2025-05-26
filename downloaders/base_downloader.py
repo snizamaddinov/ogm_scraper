@@ -11,6 +11,9 @@ from urllib import parse
 from datetime import datetime
 import re
 import hashlib
+import traceback
+from pathlib import Path
+
 
 class Logger(logging.Logger):
     PATH = 'logs/downloaders'
@@ -51,7 +54,7 @@ class BaseDownloader(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def unique_row_generator(self)-> Tuple[str, str]:
+    def unique_row_generator(self)-> Tuple[str, str, str]:
         pass
 
     def get_output_filename(self) -> str:
@@ -109,12 +112,41 @@ class BaseDownloader(metaclass=ABCMeta):
 
         return final_path
 
+    def get_old_relative_path(self) -> str:
+        pass
+
+    def get_old_output_filename(self) -> str:
+        pass
+
+    def get_old_final_path(self):
+        relative_path = self.get_old_relative_path()
+        file_name = self.get_old_output_filename()
+        final_path = os.path.join(relative_path, file_name)
+
+        path = pathlib.Path(relative_path)
+        path.mkdir(parents=True, exist_ok=True)
+
+        return final_path
+
     def download(self):
-        for download_link, file_name in self.unique_row_generator():
-            if os.path.exists(file_name):
-                self.processed_download_links.add(file_name)
+        for download_link, file_name, old_format_file_name in self.unique_row_generator():
+            if self.is_processed_row(download_link):
                 self.logger.info(f"File already exists: {file_name}")
                 continue
+            else:
+                if os.path.exists(old_format_file_name):
+                    os.replace(old_format_file_name, file_name)
+                    self.logger.info(f"Moved old file: {old_format_file_name} → {file_name}")
+
+                    parent_dir = Path(old_format_file_name).parent
+                    while True:
+                        if parent_dir.is_dir() and not any(parent_dir.iterdir()):
+                            parent_dir.rmdir()
+                            self.logger.info(f"Deleted empty folder after move: {parent_dir}")
+                            parent_dir = parent_dir.parent
+                        else:
+                            break
+                    continue
 
             try:
                 with (self.session.get(download_link, stream=True, timeout=10) as response):
@@ -125,12 +157,13 @@ class BaseDownloader(metaclass=ABCMeta):
                                     file.write(chunk)
 
                         self.logger.info(f"Downloaded: {file_name}")
-                        self.processed_download_links.add(file_name)
                     else:
                         self.logger.error(f"Failed to download {download_link}: {response.status_code}")
+                        self.logger.error(traceback.format_exc())
 
             except requests.RequestException as e:
                 self.logger.error(f"Failed to download {download_link}: {e}")
+                self.logger.error(traceback.format_exc())
 
 
 class ScraperClassDownloader(BaseDownloader, metaclass=ABCMeta):
@@ -159,6 +192,7 @@ class ScraperClassDownloader(BaseDownloader, metaclass=ABCMeta):
                 subclasses = [self.SCRAPER_CLASS]
         except Exception as e:
             self.logger.error(f"Failed to get classes to scrape: {e}")
+            self.logger.error(traceback.format_exc())
             return []
         else:
             return subclasses
@@ -231,8 +265,9 @@ class ScraperClassDownloader(BaseDownloader, metaclass=ABCMeta):
                         if self.is_valid_row():
                             link_2_d = self.get_download_link()
                             full_d_path = self.get_final_path()
+                            old_full_d_path = self.get_old_final_path()
 
-                            yield link_2_d, full_d_path
+                            yield link_2_d, full_d_path, old_full_d_path
 
                             self.update_row_processed(link_2_d, full_d_path)
 
@@ -255,6 +290,7 @@ class ScraperClassDownloader(BaseDownloader, metaclass=ABCMeta):
                 self.logger.info(f"Successfully updated {prefix}: {count}")
             except Exception as e:
                 self.logger.error(f"Failed to process {prefix}: {e}")
+                self.logger.error(traceback.format_exc())
 
 
 class ScraperVideoDownloader(ScraperClassDownloader):
@@ -281,3 +317,13 @@ class ScraperVideoDownloader(ScraperClassDownloader):
 
     def get_download_link(self) -> str:
         return self.current_row['videoLink']
+
+    def get_old_output_filename(self) -> str:
+        unique_id = self.current_row['videoId']
+        if '.mp4' not in unique_id:
+            unique_id = f"{unique_id}.mp4"
+
+        return unique_id
+
+    def get_old_relative_path(self) -> str:
+        return self.get_relative_path()

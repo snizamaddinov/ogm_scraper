@@ -48,3 +48,19 @@ class VideoDownloader(ScraperVideoDownloader):
         subject_code = helpers.format_folder_name(self.current_row.get('dersKod', 'unknown_subject'))
 
         return super().get_relative_path(extras=[grade_name, subject_code])
+
+    def get_old_relative_path(self, extras: list[str] = None) -> str:
+        grade_name = helpers.format_folder_name(self.current_row.get('sinifIsmi', 'unknown_grade'))
+        subject_code = helpers.format_folder_name(self.current_row.get('dersKod', 'unknown_subject'))
+        chapter_name = helpers.format_folder_name(self.current_row.get("uniteIsmi", 'unknown_chapter'))
+        gain_name = helpers.format_folder_name(self.current_row.get('kazanimIsmi', 'unknown_gain'))
+
+        return super().get_relative_path(extras=[grade_name, subject_code, chapter_name, gain_name])
+
+    def get_old_output_filename(self) -> str:
+        video_name = helpers.format_folder_name(self.current_row.get('videoBaslik', ''))
+        video_id = self.current_row.get('videoId')
+        if '.mp4' in video_id:
+            video_id.replace('.mp4', '')
+
+        return f"{video_id}__{video_name}.mp4"
