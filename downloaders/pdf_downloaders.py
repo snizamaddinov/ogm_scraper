@@ -37,26 +37,12 @@ class BooksAndVideoNoFilteringDownloader(ScraperClassDownloader):
     def get_download_link(self) -> str:
         return self.current_row['pdfLink']
 
-    def get_output_filename(self) -> str:
-        unique_id = self.current_row['pdfId']
-        if '.pdf' not in unique_id:
-            unique_id = f"{unique_id}.pdf"
-
-        return unique_id
-
 
 class BooksAndVideoWithFilteringDownloader(ScraperClassDownloader):
     SCRAPER_CLASS = BooksAndVideoWithFilteringBaseScraper
 
     def get_download_link(self) -> str:
         return self.current_row['pdfLink']
-
-    def get_output_filename(self) -> str:
-        unique_id = self.current_row['pdfId']
-        if '.pdf' not in unique_id:
-            unique_id = f"{unique_id}.pdf"
-
-        return unique_id
 
     def get_relative_path(self, *args, **kwargs) -> str:
         ders_kodu = helpers.format_folder_name(self.current_row.get('dersKodu', ''))
@@ -71,13 +57,6 @@ class BooksWithFilteringDownloader(ScraperClassDownloader):
 
     def get_download_link(self) -> str:
         return self.current_row['pdfIndirmeLink']
-
-    def get_output_filename(self) -> str:
-        file_name = helpers.format_filename_from_url(self.get_download_link(), self.static_url_part)
-        if '.pdf' not in file_name:
-            file_name = f"{file_name}.pdf"
-
-        return file_name
 
     def get_relative_path(self, *args, **kwargs) -> str:
         grade_name = helpers.format_folder_name(self.current_row.get('sinifIsmi', ''))
@@ -96,26 +75,12 @@ class BooksWithNoFilteringDownloader(ScraperClassDownloader):
 
         return link
 
-    def get_output_filename(self) -> str:
-        file_name = helpers.format_filename_from_url(self.get_download_link())
-        if '.pdf' not in file_name:
-            file_name = f"{file_name}.pdf"
-
-        return file_name
-
 
 class BooksWithProgressiveFilteringDownloader(ScraperClassDownloader):
     SCRAPER_CLASS = BooksWithProgressiveFilteringBaseScraper
 
     def get_download_link(self) -> str:
         return self.current_row['pdfIndirmeLink']
-
-    def get_output_filename(self) -> str:
-        file_name = helpers.format_filename_from_url(self.get_download_link())
-        if '.pdf' not in file_name:
-            file_name = f"{file_name}.pdf"
-
-        return file_name
 
     def get_relative_path(self, *args, **kwargs) -> str:
         grade_name = helpers.format_folder_name(self.current_row.get('sinifIsmi', ''))
@@ -130,13 +95,6 @@ class PdfLinksWithFilteringDownloader(ScraperClassDownloader):
     def get_download_link(self) -> str:
         return self.current_row['pdfLink']
 
-    def get_output_filename(self) -> str:
-        unique_id = self.current_row['pdfId']
-        if '.pdf' not in unique_id:
-            unique_id = f"{unique_id}.pdf"
-
-        return unique_id
-
     def get_relative_path(self, *args, **kwargs) -> str:
         grade_name = helpers.format_folder_name(self.current_row.get('sinifIsmi', ''))
         subject_name = helpers.format_folder_name(self.current_row.get('dersIsmi', ''))
@@ -147,18 +105,8 @@ class PdfLinksWithFilteringDownloader(ScraperClassDownloader):
 class DersKitaplariDownloader(ScraperClassDownloader):
     SCRAPER_CLASS = InteractiveBooksScraper
 
-    def get_classes_to_scrape(self):
-        return [InteractiveBooksScraper]
-
     def get_download_link(self) -> str:
         return self.current_row['pdfIndirmeLink']
-
-    def get_output_filename(self) -> str:
-        unique_id = self.current_row['kitapId']
-        if '.pdf' not in unique_id:
-            unique_id = f"{unique_id}.pdf"
-
-        return unique_id
 
     def get_relative_path(self, *args, **kwargs) -> str:
         grade_name = helpers.format_folder_name(self.current_row.get('sinifIsmi', ''))

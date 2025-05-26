@@ -5,7 +5,6 @@ from urllib import parse
 
 
 def request_with_backoff(url: str, backoff: int = 2, retries: int = 3) -> requests.Response | None:
-    print("Making request to : ", url)
     # return None
     for i in range(retries):
         response = requests.get(url)

@@ -1,6 +1,2 @@
-﻿flipbookKitapLink,pdfIndirmeLink,zipIndirmeLink,kitapThumbnailLink
-https://ogmmateryal.eba.gov.tr/ogm-test/book/67af3a0bb02f9f129ebf8e50,https://ogmmateryal.eba.gov.tr/kitap/cikmis-sorular/tyt.pdf,,https://ogmmateryal.eba.gov.tr/content/img/yks-cikmis-sorular/CS-TYT.png
-https://ogmmateryal.eba.gov.tr/ogm-test/book/67c04bba2ff8d02ed00e890f,https://ogmmateryal.eba.gov.tr/kitap/cikmis-sorular/ayt-ea.pdf,,https://ogmmateryal.eba.gov.tr/content/img/yks-cikmis-sorular/CS-AYT-EA.png
-https://ogmmateryal.eba.gov.tr/ogm-test/book/67c228a82ff8d02ed0105143,https://ogmmateryal.eba.gov.tr/kitap/cikmis-sorular/ayt-soz.pdf,,https://ogmmateryal.eba.gov.tr/content/img/yks-cikmis-sorular/CS-AYT-SOZ.png
-https://ogmmateryal.eba.gov.tr/ogm-test/book/67c03eae2ff8d02ed00e792f,https://ogmmateryal.eba.gov.tr/kitap/cikmis-sorular/ayt-say.pdf,,https://ogmmateryal.eba.gov.tr/content/img/yks-cikmis-sorular/CS-AYT-SAY.png
-https://ogmmateryal.eba.gov.tr/ogm-test/book/67c22a3d2ff8d02ed010523b,https://ogmmateryal.eba.gov.tr/kitap/cikmis-sorular/ydt.pdf,,https://ogmmateryal.eba.gov.tr/content/img/yks-cikmis-sorular/CS-YDT.png
+﻿flipbookKitapLink,pdfIndirmeLink,zipIndirmeLink,kitapThumbnailLink,pdf_downloaded_full_path,pdf_downloaded_relative_path
+https://ogmmateryal.eba.gov.tr/ogm-test/book/67af3a0bb02f9f129ebf8e50,https://ogmmateryal.eba.gov.tr/kitap/cikmis-sorular/tyt.pdf,,https://ogmmateryal.eba.gov.tr/content/img/yks-cikmis-sorular/CS-TYT.png,/Users/bkmobil/Projects/scrapers/ogmmateryal_scraper/downloaded_pdf_files/YKS_Cikmis_Soru_Kitaplari/eaab524c24183def00a81d4ebe137276.pdf,downloaded_pdf_files/YKS_Cikmis_Soru_Kitaplari/eaab524c24183def00a81d4ebe137276.pdf
